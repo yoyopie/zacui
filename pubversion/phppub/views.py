@@ -33,7 +33,6 @@ MAX_GROUP_NUM = 35
 INTERFACE_CALLING_INTERVAL = 16
 MAX_PROGRESS_LEN = 50
  
-QRImagePath = os.path.join(os.getcwd(), 'qrcode.jpg')
  
 tip = 0
 uuid = ''
@@ -69,7 +68,7 @@ def getRequest(url, data=None):
         return wdf_urllib.Request(url=url, data=data)
  
 def getUUID():
-    global uuid
+    #global uuid
  
     url = 'https://login.weixin.qq.com/jslogin'
     params = {
@@ -92,61 +91,30 @@ def getUUID():
     code = pm.group(1)
     uuid = pm.group(2)
  
-    if code == '200':
-        return True
+    #if code == '200':
+    #    return True
  
-    return False
+    #return False
+    return uuid
  
-def showQRImage():
-    global tip
  
-    url = 'https://login.weixin.qq.com/qrcode/' + uuid
-    params = {
-        't': 'webwx',
-        '_': int(time.time()),
-    }
- 
-    request = getRequest(url=url, data=urlencode(params))
-    response = wdf_urllib.urlopen(request)
- 
-    tip = 1
- 
-    f = open(QRImagePath, 'wb')
-    f.write(response.read())
-    f.close()
- 
-    if sys.platform.find('darwin') >= 0:
-        subprocess.call(['open', QRImagePath])
-    elif sys.platform.find('linux') >= 0:
-        subprocess.call(['xdg-open', QRImagePath])
-    else:
-        os.startfile(QRImagePath)
- 
-    print('scan')
- 
-def waitForLogin():
-    global tip, base_uri, redirect_uri
- 
+def waitForLogin(uuid):
+    #global tip, base_uri, redirect_uri
+    tip = 0 
     url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (
         tip, uuid, int(time.time()))
  
     request = getRequest(url=url)
     response = wdf_urllib.urlopen(request)
     data = response.read().decode('utf-8', 'replace')
- 
-    # print(data)
- 
-    # window.code=500;
     regx = r'window.code=(\d+);'
     pm = re.search(regx, data)
  
     code = pm.group(1)
  
     if code == '201':
-        print('ok')
         tip = 0
     elif code == '200':
-        print('login...')
         regx = r'window.redirect_uri="(\S+?)";'
         pm = re.search(regx, data)
         redirect_uri = pm.group(1) + '&fun=new'
@@ -158,17 +126,17 @@ def waitForLogin():
     elif code == '408':
         pass
     # elif code == '400' or code == '500':
+    waitlogin_dict = {'tip': tip, 'base_uri': base_uri, 'redirect_uri': redirect_uri, 'code': code}
  
-    return code
+    return waitlogin_dict
  
-def login():
-    global skey, wxsid, wxuin, pass_ticket, BaseRequest
+def login(redirect_uri):
+    #global skey, wxsid, wxuin, pass_ticket, BaseRequest
  
     request = getRequest(url=redirect_uri)
     response = wdf_urllib.urlopen(request)
     data = response.read().decode('utf-8', 'replace')
  
-    # print(data)
  
     '''
         <error>
@@ -207,10 +175,11 @@ def login():
         'Skey': skey,
         'DeviceID': deviceId,
     }
+    logindict = {'skey': skey, 'wxsid': wxsid, 'wxuin': wxuin, 'pass_ticket': pass_ticket, 'BaseRequest': BaseRequest} 
+    #return True
+    return logindict
  
-    return True
- 
-def webwxinit():
+def webwxinit(base_uri, BaseRequest, pass_ticket, skey):
  
     url = base_uri + \
         '/webwxinit?pass_ticket=%s&skey=%s&r=%s' % (
@@ -233,7 +202,7 @@ def webwxinit():
  
     # print(data)
  
-    global ContactList, My, SyncKey
+    #global ContactList, My, SyncKey
     dic = json.loads(data)
     ContactList = dic['ContactList']
     My = dic['User']
@@ -250,10 +219,11 @@ def webwxinit():
     Ret = dic['BaseResponse']['Ret']
     if Ret != 0:
         return False
+    webwxinitdict = {'ContactList': ContactList, 'My': My, 'SyncKey': SyncKey}
  
-    return True
+    return webwxinitdict
  
-def webwxgetcontact():
+def webwxgetcontact(base_uri, My):
  
     url = base_uri + \
         '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (
@@ -290,7 +260,7 @@ def webwxgetcontact():
  
     return MemberList
  
-def createChatroom(UserNames):
+def createChatroom(UserNames, base_uri):
     # MemberList = []
     # for UserName in UserNames:
         # MemberList.append({'UserName': UserName})
@@ -327,7 +297,7 @@ def createChatroom(UserNames):
  
     return ChatRoomName, DeletedList
  
-def deleteMember(ChatRoomName, UserNames):
+def deleteMember(ChatRoomName, UserNames, base_uri):
     url = base_uri + \
         '/webwxupdatechatroom?fun=delmember&pass_ticket=%s' % (pass_ticket)
     params = {
@@ -354,7 +324,7 @@ def deleteMember(ChatRoomName, UserNames):
  
     return True
  
-def addMember(ChatRoomName, UserNames):
+def addMember(ChatRoomName, UserNames, base_uri):
     url = base_uri + \
         '/webwxupdatechatroom?fun=addmember&pass_ticket=%s' % (pass_ticket)
     params = {
@@ -383,7 +353,7 @@ def addMember(ChatRoomName, UserNames):
  
     return DeletedList
  
-def syncCheck():
+def syncCheck(base_uri, SyncKey):
     url = base_uri + '/synccheck?'
     params = {
         'skey': BaseRequest['SKey'],
@@ -397,10 +367,6 @@ def syncCheck():
     request = getRequest(url=url + urlencode(params))
     response = wdf_urllib.urlopen(request)
     data = response.read().decode('utf-8', 'replace')
- 
-    # print(data)
- 
-    # window.synccheck={retcode:"0",selector:"2"}
  
 def main():
  
@@ -417,13 +383,8 @@ def main():
         print('get uuid fail')
         return
  
-    showQRImage()
-    time.sleep(1)
- 
     while waitForLogin() != '200':
         pass
- 
-    os.remove(QRImagePath)
  
     if not login():
         print('login fail')
@@ -527,7 +488,7 @@ def index(request):
             wdf_urllib.install_opener(opener)
         except:
             pass
-        getUUID()
+        uuid = getUUID()
         url = 'https://login.weixin.qq.com/qrcode/' + uuid
         params = {
             't': 'webwx',
@@ -542,3 +503,20 @@ def index(request):
             }
     return render_to_response('index.html', context)
 
+def check(request):
+    if request.method == "GET":
+        uuid = request.GET.get('uuid', '') 
+        print(uuid)
+        waitforlogin = waitForLogin(uuid)
+        print(waitforlogin['code'])
+	if waitforlogin['code'] == '200':
+            print('jing ru')
+            base_uri, redirect_uri = waitforlogin['base_uri'], waitforlogin['redirect_uri']
+            logindict = login(redirect_uri)
+            BaseRequest, pass_ticket, skey = logindict['BaseRequest'], logindict['pass_ticket'], logindict['skey']
+            webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
+            print(redirect_uri)
+            print(logindict)
+            print(webwxinitdict)
+        else:
+            pass

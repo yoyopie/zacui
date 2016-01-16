@@ -19,5 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^index/$', 'phppub.views.index'),
-    url(r'^insertdata/$', 'phppub.views.insertdata'),
+    url(r'^check/$', 'phppub.views.check'),
 ]
