@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>看看谁把你删除了</title>
+<meta name="viewport" content="width=device-width" />
+<meta name="generator" content="WordPress 3.9" />
+<script src="//cdn.bootcss.com/jquery/3.0.0-alpha1/jquery.min.js"></script>
+</head>
+
+<body class="wordpress ltr zh zh-cn parent-theme y2016 m01 d14 h00 thursday logged-out singular singular-post singular-post-42 group-blog layout-2c-l" dir="ltr" itemscope="itemscope" itemtype="http://schema.org/WebPage">
+
+<div style="width:500px; height:200px; background-color:#39F; text-align:center"> 
+<img align="center" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx"/>
+</div>
+<div>
+<input type="button" onclick="RegisterRequest2();"  value="StartRequest" />
+</div>
+<script>
+$(document).ready(function(){
+    var _uuid = 
+    $.ajax({
+       type: "GET",
+       url: "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=" + _uuid + "&tip=1&_=1377482045264",
+       dataType: "script",
+       cache: false,
+       timeout: 100000,
+       success: function 
+      });
+   });
+</script>
+</body>
+</html>

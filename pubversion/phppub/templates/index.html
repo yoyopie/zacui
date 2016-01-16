@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>看看你被谁删除了</title>
+		<meta charset="utf-8">		
+		<link rel="stylesheet" href="https://res.wx.qq.com/connect/zh_CN/htmledition/style/impowerApp29579a.css">
+		<link href="https://res.wx.qq.com/connect/zh_CN/htmledition/images/favicon16cb56.ico" rel="Shortcut Icon">
+		<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/jquery.min29f55f.js"></script>
+	</head>
+	<body>
+		<div class="main impowerBox">
+			<div class="loginPanel normalPanel">
+				<div class="title">微信登录</div>
+				<div class="waiting panelContent">
+					<div class="wrp_code"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
+					<div class="info">
+						<div class="status status_browser js_status" id="wx_default_tip">
+			                <p>请使用微信扫描二维码登录</p>
+                            <p>“云猴网”</p>
+			            </div>
+			            <div class="status status_succ js_status" style="display:none" id="wx_after_scan">
+			                <i class="status_icon icon38_msg succ"></i>
+			                <div class="status_txt">
+			                    <h4>扫描成功</h4>
+			                    <p>请在微信中点击确认即可登录</p>
+			                </div>
+			            </div>
+			            <div class="status status_fail js_status" style="display:none" id="wx_after_cancel">
+			                <i class="status_icon icon38_msg warn"></i>
+			                <div class="status_txt">
+			                    <h4>您已取消此次登录</h4>
+			                    <p>您可再次扫描登录，或关闭窗口</p>
+			                </div>
+			            </div>
+			        </div>
+				</div>
+			</div>
+		</div>
+		<script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/xss209118.js"></script>
+		<script>
+			!function(){function i(b){jQuery.ajax({type:"GET",url:"https://long.open.weixin.qq.com/connect/l/qrconnect?uuid={{uuid}}"+(b?"&last="+b:""),dataType:"script",cache:!1,timeout:6e4,success:function(){var f,g,e=window.wx_errcode;switch(e){case 405:if(f="https://ssl.yunhou.com/login/wechat/callback/pc",f=f.replace(/&amp;/g,"&"),f+=(f.indexOf("?")>-1?"&":"?")+"code="+wx_code+"&state="+"33c883b8c7fadb9b7d9fcec85ef6832c",a)try{document.domain="qq.com",g=window.top.location.host.toLowerCase(),g&&(window.location=f)}catch(h){window.top.location=f}else window.location=f;break;case 404:jQuery(".js_status").hide(),jQuery("#wx_after_scan").show(),setTimeout(i,2e3,e);break;case 403:jQuery(".js_status").hide(),jQuery("#wx_after_cancel").show(),setTimeout(i,2e3,e);break;case 402:case 500:window.location.reload();break;case 408:setTimeout(i,2e3)}},error:function(){var d=window.wx_errcode;408==d?setTimeout(i,5e3):setTimeout(i,5e3,d)}})}var b,c,d,e,f,g,h,a=window.top!=window;if(a)f="","white"!=f&&(document.body.style.color="#373737");else for(document.getElementsByClassName||(document.getElementsByClassName=function(a){var e,f,b=[],c=new RegExp("(^| )"+a+"( |$)"),d=document.getElementsByTagName("*");for(e=0,f=d.length;f>e;e++)c.test(d[e].className)&&b.push(d[e]);return b}),document.body.style.backgroundColor="#333333",document.body.style.padding="50px",b=document.getElementsByClassName("status"),c=0,d=b.length;d>c;++c)e=b[c],e.className=e.className+" normal";g="",g&&(h=document.createElement("link"),h.rel="stylesheet",h.href=g,document.getElementsByTagName("head")[0].appendChild(h)),setTimeout(i,2e3)}();
+		</script>
+	</body>
+</html>

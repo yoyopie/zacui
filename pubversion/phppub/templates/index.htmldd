@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>代码发布专用</title>
+
+    <link rel="icon" href="favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://cdn.bootcss.com/highlight.js/8.4/styles/monokai_sublime.min.css">
+
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="css/my.css">
+    <link rel="stylesheet" href="css/yue.css">
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="./">代码发布</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="./">首页</a>
+                    </li>
+                    <li><a href="docs/">发布php版本</a>
+                    </li>
+                    <li><a href="docs/getting-started/">发布java版本</a>
+                    </li>
+                    <li><a href="docs/api/">API</a>
+                    </li>
+                    <li><a href="docs/writing-a-plugin/">插件开发</a>
+                    </li>
+                    <li><a href="docs/faq/">常见问题</a>
+                    </li>
+                    <li><a href="docs/recipes/">使用技巧</a>
+                    </li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+
+
+
+    <div class="benefits container">
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Version</th>
+                            <th>Oldversion</th>
+                            <th>Pubornot</th>
+                            <th>Backdir</th>
+                        </tr>
+                    </thrad>
+                    <tbody>
+                {% for key in phpversion %}
+                <!--td>{{ key | slice:'0' }}</td>
+                <td>{{ key | slice:'1' }}</td>
+                <td>{{ key | slice:'2' }}</td>
+                <td>{{ key | slice:'3' }}</td>
+                <td>{{ key | slice:'4' }}</td-->
+                {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2015</p>
+        </div>
+    </footer>
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="js/ie10-viewport-bug-workaround.js"></script>
+    <script src="http://cdn.bootcss.com/highlight.js/8.4/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="js/site.js"></script>
+    <script type="text/javascript">
+        var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+        document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F3d8e7fc0de8a2a75f2ca3bfe128e6391' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+</body>
+
+</html>
