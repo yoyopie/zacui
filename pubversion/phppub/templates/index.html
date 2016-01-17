@@ -11,7 +11,7 @@
                 <script src="http://files.cnblogs.com/dachie/jquery.timers-1.2.js" type="text/javascript"></script>
 	</head>
 	<body>
-		<div class="main impowerBox">
+		<div class="main impowerBox" id="data">
 			<div class="loginPanel normalPanel">
 				<div class="title">登录微信</div>
 				<div class="waiting panelContent">
@@ -45,14 +45,16 @@
 
 <script type="text/javascript"> 
 $(document).ready(function(){
-$('body').everyTime('3s',function(){
+$('body').everyTime('4s',function(){
     var $_uuid = $("#wx_uuid").val();
     $.ajax({
         url: "/check/",
         type: "get",
         data: {"uuid": $_uuid,
                },
-        success: function(){}
+        success: function(data){
+          $('#data').html(data);
+     }
 }); 
 }); 
 }); 

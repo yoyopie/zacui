@@ -24,6 +24,7 @@ import sys
 import math
 import subprocess
 import ssl
+import memcache
 # Create your views here.
 
  
@@ -34,23 +35,23 @@ INTERFACE_CALLING_INTERVAL = 16
 MAX_PROGRESS_LEN = 50
  
  
-tip = 0
-uuid = ''
- 
-base_uri = ''
-redirect_uri = ''
- 
-skey = ''
-wxsid = ''
-wxuin = ''
-pass_ticket = ''
-deviceId = 'e000000000000000'
- 
-BaseRequest = {}
- 
-ContactList = []
-My = []
-SyncKey = ''
+#tip = 0
+#uuid = ''
+# 
+#base_uri = ''
+#redirect_uri = ''
+# 
+#skey = ''
+#wxsid = ''
+#wxuin = ''
+#pass_ticket = ''
+#deviceId = 'e000000000000000'
+# 
+#BaseRequest = {}
+# 
+#ContactList = []
+#My = []
+#SyncKey = ''
  
 try:
     xrange
@@ -166,8 +167,8 @@ def login(redirect_uri):
     # print('skey: %s, wxsid: %s, wxuin: %s, pass_ticket: %s' % (skey, wxsid,
     # wxuin, pass_ticket))
  
-    if not all((skey, wxsid, wxuin, pass_ticket)):
-        return False
+    #if not all((skey, wxsid, wxuin, pass_ticket)):
+    #    return False
  
     BaseRequest = {
         'Uin': int(wxuin),
@@ -507,16 +508,39 @@ def check(request):
     if request.method == "GET":
         uuid = request.GET.get('uuid', '') 
         print(uuid)
+        #获取登陆
         waitforlogin = waitForLogin(uuid)
         print(waitforlogin['code'])
+        #如果已经扫描点登陆返回key为200
 	if waitforlogin['code'] == '200':
             print('jing ru')
             base_uri, redirect_uri = waitforlogin['base_uri'], waitforlogin['redirect_uri']
-            logindict = login(redirect_uri)
-            BaseRequest, pass_ticket, skey = logindict['BaseRequest'], logindict['pass_ticket'], logindict['skey']
-            webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
+            print('2 jing')
             print(redirect_uri)
+            print(base_uri)
+            #正式登陆，重要获取 skey  wxsid wxuid
+            logindict = login(redirect_uri)
+            print('3 jing')
+            BaseRequest, pass_ticket, skey = logindict['BaseRequest'], logindict['pass_ticket'], logindict['skey']
             print(logindict)
+            #初始化，获取ContactList, My, SyncKey
+            webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
             print(webwxinitdict)
+            #ajax返回以上值，也可以服务端存储到redis或者Memcached
+            context ={
+               'uuid': uuid,
+               'base_uri': base_uri,
+               'redirect_uri': redirect_uri,
+               'BaseRequest': BaseRequest,
+               'pass_ticket': pass_ticket,
+               'skey': skey,
+               'ContactList': ContactList,
+               'My': My,
+               'SyncKey': SyncKey
+               }
+            return render_to_response('check.html', context)
         else:
             pass
+
+def wxdoit(request):
+    pass
