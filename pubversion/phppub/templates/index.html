@@ -13,30 +13,20 @@
 	<body>
 		<div class="main impowerBox" id="data">
 			<div class="loginPanel normalPanel">
-				<div class="title">登录微信</div>
 				<div class="waiting panelContent">
+					<div class="info" style="color:#F00">
+						<div class="" id="wx_default_tip">
+			                               <p>请使用微信扫描二维码登录</p>
+                                                       <p>“这个工具”</p>
+			                        </div>
+			               </div>
 					<div class="wrp_code"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
-					<div class="info">
-						<div class="status status_browser js_status" id="wx_default_tip">
-                                                <input type="submit" value={{uuid}} id="wx_uuid" />
-			                <p>请使用微信扫描二维码登录</p>
-                            <p>“这个工具”</p>
-			            </div>
-			            <div class="status status_succ js_status" style="display:none" id="wx_after_scan">
-			                <i class="status_icon icon38_msg succ"></i>
-			                <div class="status_txt">
-			                    <h4>扫描成功</h4>
-			                    <p>请在微信中点击确认即可登录</p>
-			                </div>
-			            </div>
-			            <div class="status status_fail js_status" style="display:none" id="wx_after_cancel">
-			                <i class="status_icon icon38_msg warn"></i>
-			                <div class="status_txt">
-			                    <h4>您已取消此次登录</h4>
-			                    <p>您可再次扫描登录，或关闭窗口</p>
-			                </div>
-			            </div>
-			        </div>
+                                                <input type="submit" value={{uuid}} id="wx_uuid" style="display:none;" />
+					<div class="info" style="color:#F00">
+						<div class="" id="wx_default_tip">
+                                                       <p>本工具可以轻松找出删除自己的好友，还不被他们发现，最终会遗留下一个只有自己的群组，需要手工删一下。</p>
+			                        </div>
+			               </div>
 				</div>
 			</div>
 		</div>

@@ -1,3 +1,4 @@
+#coding:utf8
 from __future__ import print_function
 from django.shortcuts import render
 from django.shortcuts import render_to_response
@@ -24,7 +25,6 @@ import sys
 import math
 import subprocess
 import ssl
-import memcache
 # Create your views here.
 
  
@@ -476,8 +476,8 @@ class UnicodeStreamFilter:
         s = s.encode(self.encode_to, self.errors).decode(self.encode_to)
         self.target.write(s)
  
-if sys.stdout.encoding == 'cp936':
-    sys.stdout = UnicodeStreamFilter(sys.stdout)
+#if sys.stdout.encoding == 'cp936':
+#    sys.stdout = UnicodeStreamFilter(sys.stdout)
 
 def index(request):
     if request.method == "GET":
