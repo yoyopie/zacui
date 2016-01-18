@@ -3,6 +3,7 @@ from __future__ import print_function
 from django.shortcuts import render
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
+import simplejson
  
 import os
 try:
@@ -102,6 +103,8 @@ def getUUID():
  
 def waitForLogin(uuid):
     #global tip, base_uri, redirect_uri
+    base_uri = ''
+    redirect_uri = ''
     tip = 0 
     url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (
         tip, uuid, int(time.time()))
@@ -501,11 +504,16 @@ def index(request):
         response = wdf_urllib.urlopen(request)
         context = {
             'uuid': uuid,
+            'return_code': '0',
             'response': response.read(),
             }
     return render_to_response('index.html', context)
 
 def check(request):
+    ContactList = []
+    My = []
+    SyncKey = ''
+    BaseRequest = {}
     if request.method == "GET":
         uuid = request.GET.get('uuid', '') 
         print(uuid)
@@ -542,10 +550,15 @@ def check(request):
             mc.set(uuid, mccontext)
             context = {
                'uuid': uuid,
+               'return_code': '200',
                }
-            return render_to_response('check.html', context)
         else:
-            pass
+            context = {
+               'uuid': uuid,
+               'return_code': '408',
+               }
+        #return render_to_response('check.html', context)
+        return HttpResponse(simplejson.dumps(context, ensure_ascii=False))
 
 def wxdoit(request):
     pass

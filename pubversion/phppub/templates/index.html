@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -13,7 +12,7 @@
 	<body>
 		<div class="main impowerBox" id="data">
 			<div class="loginPanel normalPanel">
-				<div class="waiting panelContent">
+				<div class="waiting panelContent" id="wx_check" >
 					<div class="info" style="color:#F00">
 						<div class="" id="wx_default_tip">
 			                               <p>请使用微信扫描二维码登录</p>
@@ -21,11 +20,15 @@
 			                        </div>
 			               </div>
 					<div class="wrp_code"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
-                                                <input type="submit" value={{uuid}} id="wx_uuid" style="display:none;" />
 					<div class="info" style="color:#F00">
+                                                <form method="POST"> 
+                                                 {% csrf_token %}
 						<div class="" id="wx_default_tip">
                                                        <p>本工具可以轻松找出删除自己的好友，还不被他们发现，最终会遗留下一个只有自己的群组，需要手工删一下。</p>
+                                                       <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" />
+                                                       <input type="text" value={{uuid}} name="wx_uuid" id="wx_uuid" style="display:none;" />
 			                        </div>
+                                                </form>
 			               </div>
 				</div>
 			</div>
@@ -40,11 +43,14 @@ $('body').ready(function waitlogin(){
     $.ajax({
         url: "/check/",
         type: "get",
-        cache: false, 
-        data: {"uuid": $_uuid,
-               },
+        cache: false,
+        dataType: "json",  
+        data: {"uuid": $_uuid,},
         success: function(data){
-          $('#wx_default_tip').html(data);
+              if(data.return_code=='200')
+                   {$('#icandoit').show();}
+              if(data.return_code=='408')
+                   {waitlogin();}
           },
         /*error: function(data){
           waitlogin();
