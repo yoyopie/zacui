@@ -25,6 +25,7 @@ import sys
 import math
 import subprocess
 import ssl
+import memcache
 # Create your views here.
 
  
@@ -34,7 +35,7 @@ MAX_GROUP_NUM = 35
 INTERFACE_CALLING_INTERVAL = 16
 MAX_PROGRESS_LEN = 50
  
- 
+mc = memcache.Client(['127.0.0.1:12000'],debug=0) 
 #tip = 0
 #uuid = ''
 # 
@@ -45,7 +46,7 @@ MAX_PROGRESS_LEN = 50
 #wxsid = ''
 #wxuin = ''
 #pass_ticket = ''
-#deviceId = 'e000000000000000'
+deviceId = 'e000000000000000'
 # 
 #BaseRequest = {}
 # 
@@ -527,7 +528,7 @@ def check(request):
             webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
             print(webwxinitdict)
             #ajax返回以上值，也可以服务端存储到redis或者Memcached
-            context ={
+            mccontext = {
                'uuid': uuid,
                'base_uri': base_uri,
                'redirect_uri': redirect_uri,
@@ -537,6 +538,10 @@ def check(request):
                'ContactList': ContactList,
                'My': My,
                'SyncKey': SyncKey
+               }
+            mc.set(uuid, mccontext)
+            context = {
+               'uuid': uuid,
                }
             return render_to_response('check.html', context)
         else:

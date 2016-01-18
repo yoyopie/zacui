@@ -35,20 +35,16 @@
 
 <script type="text/javascript"> 
 $(document).ready(function(){
-$('body').ready(function waitlogin(){
+$('body').everyTime('4s',function(){
     var $_uuid = $("#wx_uuid").val();
     $.ajax({
         url: "/check/",
         type: "get",
-        cache: false, 
         data: {"uuid": $_uuid,
                },
         success: function(data){
-          $('#wx_default_tip').html(data);
-          },
-        /*error: function(data){
-          waitlogin();
-          }*/
+          $('#data').html(data);
+     }
 }); 
 }); 
 }); 
