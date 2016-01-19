@@ -36,7 +36,6 @@ MAX_GROUP_NUM = 35
 INTERFACE_CALLING_INTERVAL = 16
 MAX_PROGRESS_LEN = 50
  
-mc = memcache.Client(['127.0.0.1:12000'],debug=0) 
 #tip = 0
 #uuid = ''
 # 
@@ -507,34 +506,40 @@ def index(request):
             'return_code': '0',
             'response': response.read(),
             }
-    return render_to_response('index.html', context)
+        return render_to_response('index.html', context)
+    
+    if request.method == "POST":
+        uuid = request.POST.get('wx_uuid')
+        mccontext = mc.get(uuid)
+        print(mccontext)
 
 def check(request):
     ContactList = []
     My = []
     SyncKey = ''
     BaseRequest = {}
+    mc = memcache.Client(['127.0.0.1:12000'],debug=0) 
     if request.method == "GET":
         uuid = request.GET.get('uuid', '') 
-        print(uuid)
+        #print(uuid)
         #获取登陆
         waitforlogin = waitForLogin(uuid)
-        print(waitforlogin['code'])
+        #print(waitforlogin['code'])
         #如果已经扫描点登陆返回key为200
 	if waitforlogin['code'] == '200':
-            print('jing ru')
+            #print('jing ru')
             base_uri, redirect_uri = waitforlogin['base_uri'], waitforlogin['redirect_uri']
-            print('2 jing')
-            print(redirect_uri)
-            print(base_uri)
+            #print('2 jing')
+            #print(redirect_uri)
+            #print(base_uri)
             #正式登陆，重要获取 skey  wxsid wxuid
             logindict = login(redirect_uri)
-            print('3 jing')
+            #print('3 jing')
             BaseRequest, pass_ticket, skey = logindict['BaseRequest'], logindict['pass_ticket'], logindict['skey']
-            print(logindict)
+            #print(logindict)
             #初始化，获取ContactList, My, SyncKey
             webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
-            print(webwxinitdict)
+            #print(webwxinitdict)
             #ajax返回以上值，也可以服务端存储到redis或者Memcached
             mccontext = {
                'uuid': uuid,

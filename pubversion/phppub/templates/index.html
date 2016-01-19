@@ -21,8 +21,7 @@
 			               </div>
 					<div class="wrp_code"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
 					<div class="info" style="color:#F00">
-                                                <form method="POST"> 
-                                                 {% csrf_token %}
+                                                <form method="POST">{% csrf_token %}
 						<div class="" id="wx_default_tip">
                                                        <p>本工具可以轻松找出删除自己的好友，还不被他们发现，最终会遗留下一个只有自己的群组，需要手工删一下。</p>
                                                        <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" />
