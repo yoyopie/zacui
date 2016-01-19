@@ -30,6 +30,7 @@ import memcache
 # Create your views here.
 
  
+mc = memcache.Client(['127.0.0.1:11211'],debug=0) 
 DEBUG = False
  
 MAX_GROUP_NUM = 35 
@@ -357,7 +358,7 @@ def addMember(ChatRoomName, UserNames, base_uri):
  
     return DeletedList
  
-def syncCheck(base_uri, SyncKey):
+def syncCheck(base_uri, SyncKey, BaseRequest):
     url = base_uri + '/synccheck?'
     params = {
         'skey': BaseRequest['SKey'],
@@ -372,98 +373,6 @@ def syncCheck(base_uri, SyncKey):
     response = wdf_urllib.urlopen(request)
     data = response.read().decode('utf-8', 'replace')
  
-def main():
- 
-    try:
-        ssl._create_default_https_context = ssl._create_unverified_context
- 
-        opener = wdf_urllib.build_opener(
-            wdf_urllib.HTTPCookieProcessor(CookieJar()))
-        wdf_urllib.install_opener(opener)
-    except:
-        pass
- 
-    if not getUUID():
-        print('get uuid fail')
-        return
- 
-    while waitForLogin() != '200':
-        pass
- 
-    if not login():
-        print('login fail')
-        return
- 
-    if not webwxinit():
-        print('login fail')
-        return
- 
-    MemberList = webwxgetcontact()
- 
-    MemberCount = len(MemberList)
-    print('all%s' % MemberCount)
- 
-    ChatRoomName = ''
-    result = []
-    d = {}
-    for Member in MemberList:
-        d[Member['UserName']] = (Member['NickName'].encode(
-            'utf-8'), Member['RemarkName'].encode('utf-8'))
-    print('finding...')
-    group_num = int(math.ceil(MemberCount / float(MAX_GROUP_NUM)))
-    for i in range(0, group_num):
-        UserNames = []
-        for j in range(0, MAX_GROUP_NUM):
-            if i * MAX_GROUP_NUM + j >= MemberCount:
-                break
-            Member = MemberList[i * MAX_GROUP_NUM + j]
-            UserNames.append(Member['UserName'])
- 
-        if ChatRoomName == '':
-            (ChatRoomName, DeletedList) = createChatroom(UserNames)
-        else:
-            DeletedList = addMember(ChatRoomName, UserNames)
- 
-        DeletedCount = len(DeletedList)
-        if DeletedCount > 0:
-            result += DeletedList
- 
-        deleteMember(ChatRoomName, UserNames)
- 
-        progress_len = MAX_PROGRESS_LEN
-        progress = '-' * progress_len
-        progress_str = '%s' % ''.join(
-            map(lambda x: '#', progress[:(progress_len * (i + 1)) / group_num]))
-        print(''.join(
-            ['[', progress_str, ''.join('-' * (progress_len - len(progress_str))), ']']))
-        print('ad%d' % DeletedCount)
-        for i in range(DeletedCount):
-            if d[DeletedList[i]][1] != '':
-                print(d[DeletedList[i]][0] + '(%s)' % d[DeletedList[i]][1])
-            else:
-                print(d[DeletedList[i]][0])
- 
-        if i != group_num - 1:
-            print('...')
-            time.sleep(INTERFACE_CALLING_INTERVAL)
- 
-    print('\n,20s...')
-    resultNames = []
-    for r in result:
-        if d[r][1] != '':
-            resultNames.append(d[r][0] + '(%s)' % d[r][1])
-        else:
-            resultNames.append(d[r][0])
- 
-    print('---------- %d ----------' % len(result))
-    resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
-    if len(resultNames):
-        print('\n'.join(resultNames))
-    else:
-        print("no")
-    print('---------------------------------------------')
- 
-# http://blog.csdn.net/heyuxuanzee/article/details/8442718
  
 class UnicodeStreamFilter:
  
@@ -503,7 +412,6 @@ def index(request):
         response = wdf_urllib.urlopen(request)
         context = {
             'uuid': uuid,
-            'return_code': '0',
             'response': response.read(),
             }
         return render_to_response('index.html', context)
@@ -511,14 +419,85 @@ def index(request):
     if request.method == "POST":
         uuid = request.POST.get('wx_uuid')
         mccontext = mc.get(uuid)
-        print(mccontext)
+        base_uri, redirect_uri, BaseRequest, pass_ticket, skey, ContactList, My, SyncKey = mccontext['base_uri'], mccontext['redirect_uri'],\
+          mccontext['BaseRequest'], mccontext['pass_ticket'], mccontext['skey'], mccontext['ContactList'], mccontext['My'], mccontext['SyncKey']
+
+        MemberList = webwxgetcontact(base_uri, My)
+ 
+        MemberCount = len(MemberList)
+        print('all%s' % MemberCount)
+ 
+        ChatRoomName = ''
+        result = []
+        d = {}
+        for Member in MemberList:
+            d[Member['UserName']] = (Member['NickName'].encode(
+                'utf-8'), Member['RemarkName'].encode('utf-8'))
+        print('finding...')
+        group_num = int(math.ceil(MemberCount / float(MAX_GROUP_NUM)))
+        for i in range(0, group_num):
+            UserNames = []
+            for j in range(0, MAX_GROUP_NUM):
+                if i * MAX_GROUP_NUM + j >= MemberCount:
+                    break
+                Member = MemberList[i * MAX_GROUP_NUM + j]
+                UserNames.append(Member['UserName'])
+ 
+            if ChatRoomName == '':
+                (ChatRoomName, DeletedList) = createChatroom(UserNames, base_uri)
+            else:
+                DeletedList = addMember(ChatRoomName, UserNames, base_uri)
+ 
+            DeletedCount = len(DeletedList)
+            if DeletedCount > 0:
+                result += DeletedList
+ 
+            deleteMember(ChatRoomName, UserNames, base_uri)
+ 
+            progress_len = MAX_PROGRESS_LEN
+            progress = '-' * progress_len
+            progress_str = '%s' % ''.join(
+                map(lambda x: '#', progress[:(progress_len * (i + 1)) / group_num]))
+            print(''.join(
+                ['[', progress_str, ''.join('-' * (progress_len - len(progress_str))), ']']))
+            print('ad%d' % DeletedCount)
+            for i in range(DeletedCount):
+                if d[DeletedList[i]][1] != '':
+                    print(d[DeletedList[i]][0] + '(%s)' % d[DeletedList[i]][1])
+                else:
+                    print(d[DeletedList[i]][0])
+ 
+            if i != group_num - 1:
+                print('...')
+                time.sleep(INTERFACE_CALLING_INTERVAL)
+ 
+        print('\n,20s...')
+        resultNames = []
+        for r in result:
+            if d[r][1] != '':
+                resultNames.append(d[r][0] + '(%s)' % d[r][1])
+            else:
+                resultNames.append(d[r][0])
+ 
+        print('---------- %d ----------' % len(result))
+        resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
+        if len(resultNames):
+            print('\n'.join(resultNames))
+        else:
+            print("no")
+        print('---------------------------------------------')
+        context = {
+            'uuid': uuid,
+           }
+        return render_to_response('index.html', context)
+
+
 
 def check(request):
     ContactList = []
     My = []
     SyncKey = ''
     BaseRequest = {}
-    mc = memcache.Client(['127.0.0.1:12000'],debug=0) 
     if request.method == "GET":
         uuid = request.GET.get('uuid', '') 
         #print(uuid)
@@ -540,6 +519,7 @@ def check(request):
             #初始化，获取ContactList, My, SyncKey
             webwxinitdict = webwxinit(base_uri, BaseRequest, pass_ticket, skey)
             #print(webwxinitdict)
+            ContactList, My, SyncKey = webwxinitdict['ContactList'], webwxinitdict['My'], webwxinitdict['SyncKey']
             #ajax返回以上值，也可以服务端存储到redis或者Memcached
             mccontext = {
                'uuid': uuid,
@@ -553,6 +533,7 @@ def check(request):
                'SyncKey': SyncKey
                }
             mc.set(uuid, mccontext)
+            print(mccontext)
             context = {
                'uuid': uuid,
                'return_code': '200',
