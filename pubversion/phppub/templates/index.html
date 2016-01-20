@@ -7,7 +7,7 @@
 		<link href="https://res.wx.qq.com/connect/zh_CN/htmledition/images/favicon16cb56.ico" rel="Shortcut Icon">
 		<!--script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/jquery.min29f55f.js"></script-->
                 <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
-                <script src="http://files.cnblogs.com/dachie/jquery.timers-1.2.js" type="text/javascript"></script>
+                <!--script src="http://files.cnblogs.com/dachie/jquery.timers-1.2.js" type="text/javascript"></script-->
 	</head>
 	<body>
 		<div class="main impowerBox" id="data">
@@ -27,33 +27,45 @@
                                                        <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" />
                                                        <input type="text" value={{uuid}} name="wx_uuid" id="wx_uuid" style="display:none;" />
 			                        </div>
+                                                <div>{{delyou}}</div>
                                                 </form>
 			               </div>
 				</div>
 			</div>
 		</div>
-		<!--script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/xss209118.js"></script-->
                 </script-->
 
 <script type="text/javascript"> 
 $(document).ready(function(){
 $('body').ready(function waitlogin(){
-    var $_uuid = $("#wx_uuid").val();
+    var _uuid = $("#wx_uuid").val();
+    var _timestamp = Date.parse(new Date());
+    var _tip = '1';
     $.ajax({
-        url: "/check/",
+        url: "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=0&uuid=" + _uuid + "&_=" + _timestamp,
         type: "get",
         cache: false,
-        dataType: "json",  
-        data: {"uuid": $_uuid,},
+        dataType: "script",  
         success: function(data){
-              if(data.return_code=='200')
-                   {$('#icandoit').show();}
-              if(data.return_code=='408')
-                   {waitlogin();}
+              var _code = window.code;
+              if(_code=='200')
+                   $.ajax({
+                       url: "/check/" + "?uuid=" + _uuid,
+                       type: "get",
+                       cache: "false",
+                       dataType: "json",
+                      /* data: {"uuid": _uuid},*/
+                       success: function(data){
+                              if(data.return_code=='done')
+                                 {$('#icandoit').show();}
+                           },
+                      });
+              else if(_code=='201'){var _tip='0';waitlogin();}
+              else{waitlogin();}
           },
-        /*error: function(data){
+        error: function(data){
           waitlogin();
-          }*/
+          }
 }); 
 }); 
 }); 

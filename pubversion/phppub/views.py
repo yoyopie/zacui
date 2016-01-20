@@ -26,11 +26,11 @@ import sys
 import math
 import subprocess
 import ssl
-import memcache
+#import memcache
+import pylibmc as memcache
 # Create your views here.
 
- 
-mc = memcache.Client(['127.0.0.1:11211'],debug=0) 
+#mc = memcache.Client(['127.0.0.1:11211'],debug=0) 
 DEBUG = False
  
 MAX_GROUP_NUM = 35 
@@ -39,7 +39,6 @@ MAX_PROGRESS_LEN = 50
  
 #tip = 0
 #uuid = ''
-# 
 #base_uri = ''
 #redirect_uri = ''
 # 
@@ -228,7 +227,7 @@ def webwxinit(base_uri, BaseRequest, pass_ticket, skey):
  
     return webwxinitdict
  
-def webwxgetcontact(base_uri, My):
+def webwxgetcontact(base_uri, pass_ticket, skey, My):
  
     url = base_uri + \
         '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (
@@ -265,7 +264,7 @@ def webwxgetcontact(base_uri, My):
  
     return MemberList
  
-def createChatroom(UserNames, base_uri):
+def createChatroom(UserNames, pass_ticket, base_uri, BaseRequest):
     # MemberList = []
     # for UserName in UserNames:
         # MemberList.append({'UserName': UserName})
@@ -302,7 +301,7 @@ def createChatroom(UserNames, base_uri):
  
     return ChatRoomName, DeletedList
  
-def deleteMember(ChatRoomName, UserNames, base_uri):
+def deleteMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest):
     url = base_uri + \
         '/webwxupdatechatroom?fun=delmember&pass_ticket=%s' % (pass_ticket)
     params = {
@@ -329,7 +328,7 @@ def deleteMember(ChatRoomName, UserNames, base_uri):
  
     return True
  
-def addMember(ChatRoomName, UserNames, base_uri):
+def addMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest):
     url = base_uri + \
         '/webwxupdatechatroom?fun=addmember&pass_ticket=%s' % (pass_ticket)
     params = {
@@ -358,7 +357,7 @@ def addMember(ChatRoomName, UserNames, base_uri):
  
     return DeletedList
  
-def syncCheck(base_uri, SyncKey, BaseRequest):
+def syncCheck(base_uri, SyncKey, skey, BaseRequest):
     url = base_uri + '/synccheck?'
     params = {
         'skey': BaseRequest['SKey'],
@@ -413,16 +412,18 @@ def index(request):
         context = {
             'uuid': uuid,
             'response': response.read(),
+            'delyou': '',
             }
         return render_to_response('index.html', context)
     
     if request.method == "POST":
-        uuid = request.POST.get('wx_uuid')
+        uuid = str(request.POST.get('wx_uuid'))
+        mc = memcache.Client(['127.0.0.1:11211'])
         mccontext = mc.get(uuid)
         base_uri, redirect_uri, BaseRequest, pass_ticket, skey, ContactList, My, SyncKey = mccontext['base_uri'], mccontext['redirect_uri'],\
           mccontext['BaseRequest'], mccontext['pass_ticket'], mccontext['skey'], mccontext['ContactList'], mccontext['My'], mccontext['SyncKey']
 
-        MemberList = webwxgetcontact(base_uri, My)
+        MemberList = webwxgetcontact(base_uri, pass_ticket, skey, My)
  
         MemberCount = len(MemberList)
         print('all%s' % MemberCount)
@@ -444,15 +445,15 @@ def index(request):
                 UserNames.append(Member['UserName'])
  
             if ChatRoomName == '':
-                (ChatRoomName, DeletedList) = createChatroom(UserNames, base_uri)
+                (ChatRoomName, DeletedList) = createChatroom(UserNames, pass_ticket, base_uri, BaseRequest)
             else:
-                DeletedList = addMember(ChatRoomName, UserNames, base_uri)
+                DeletedList = addMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest)
  
             DeletedCount = len(DeletedList)
             if DeletedCount > 0:
                 result += DeletedList
  
-            deleteMember(ChatRoomName, UserNames, base_uri)
+            deleteMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest)
  
             progress_len = MAX_PROGRESS_LEN
             progress = '-' * progress_len
@@ -483,11 +484,14 @@ def index(request):
         resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
         if len(resultNames):
             print('\n'.join(resultNames))
+            delyou = 'and'.join(resultNames) + ' 把你给删除了!'
         else:
             print("no")
+            delyou = '你好牛叉啊，没有人敢删你!'
         print('---------------------------------------------')
         context = {
             'uuid': uuid,
+            'delyou': delyou,
            }
         return render_to_response('index.html', context)
 
@@ -499,7 +503,7 @@ def check(request):
     SyncKey = ''
     BaseRequest = {}
     if request.method == "GET":
-        uuid = request.GET.get('uuid', '') 
+        uuid = str(request.GET.get('uuid', ''))
         #print(uuid)
         #获取登陆
         waitforlogin = waitForLogin(uuid)
@@ -532,19 +536,17 @@ def check(request):
                'My': My,
                'SyncKey': SyncKey
                }
+            mc = memcache.Client(['127.0.0.1:11211'])
             mc.set(uuid, mccontext)
             print(mccontext)
             context = {
                'uuid': uuid,
-               'return_code': '200',
+               'return_code': 'done',
                }
         else:
             context = {
                'uuid': uuid,
-               'return_code': '408',
+               'return_code': 'fall',
                }
         #return render_to_response('check.html', context)
         return HttpResponse(simplejson.dumps(context, ensure_ascii=False))
-
-def wxdoit(request):
-    pass
