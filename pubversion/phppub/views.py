@@ -544,12 +544,10 @@ def check(request):
             context = {
                'uuid': uuid,
                'return_code': 'done',
-               'mccontext': mccontext,
                }
         else:
             context = {
                'uuid': uuid,
                'return_code': 'fall',
                }
-        #return render_to_response('check.html', context)
         return HttpResponse(simplejson.dumps(context, ensure_ascii=False))
