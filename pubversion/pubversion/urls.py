@@ -20,4 +20,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'phppub.views.index'),
     url(r'^check/$', 'phppub.views.check'),
+    url(r'^checkwx/$', 'phppub.views.checkwx'),
 ]

@@ -416,8 +416,9 @@ def index(request):
             }
         return render_to_response('index.html', context)
     
-    if request.method == "POST":
-        uuid = str(request.POST.get('wx_uuid'))
+def checkwx(request):
+    if request.method == "GET":
+        uuid = str(request.GET.get('uuid'))
         mc = memcache.Client(['127.0.0.1:11211'])
         mccontext = mc.get(uuid)
         base_uri, redirect_uri, BaseRequest, pass_ticket, skey, ContactList, My, SyncKey = mccontext['base_uri'], mccontext['redirect_uri'],\
@@ -482,6 +483,7 @@ def index(request):
  
         print('---------- %d ----------' % len(result))
         resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
+        time.sleep(10)
         if len(resultNames):
             print('\n'.join(resultNames))
             delyou = 'and'.join(resultNames) + ' 把你给删除了!'
@@ -493,7 +495,7 @@ def index(request):
             'uuid': uuid,
             'delyou': delyou,
            }
-        return render_to_response('index.html', context)
+        return render_to_response('checkwx.html', context)
 
 
 
@@ -542,6 +544,7 @@ def check(request):
             context = {
                'uuid': uuid,
                'return_code': 'done',
+               'mccontext': mccontext,
                }
         else:
             context = {

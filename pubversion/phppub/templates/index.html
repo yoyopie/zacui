@@ -5,30 +5,25 @@
 		<meta charset="utf-8">		
 		<link rel="stylesheet" href="https://res.wx.qq.com/connect/zh_CN/htmledition/style/impowerApp29579a.css">
 		<link href="https://res.wx.qq.com/connect/zh_CN/htmledition/images/favicon16cb56.ico" rel="Shortcut Icon">
-		<!--script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/jquery.min29f55f.js"></script-->
                 <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
-                <!--script src="http://files.cnblogs.com/dachie/jquery.timers-1.2.js" type="text/javascript"></script-->
 	</head>
 	<body>
-		<div class="main impowerBox" id="data">
+		<div class="main impowerBox" id="deldata">
 			<div class="loginPanel normalPanel">
 				<div class="waiting panelContent" id="wx_check" >
-					<div class="info" style="color:#F00">
-						<div class="" id="wx_default_tip">
+					<div class="info candoit" style="color:#F00">
+						<div class="" id="default_tip">
 			                               <p>请使用微信扫描二维码登录</p>
-                                                       <p>“这个工具”</p>
 			                        </div>
 			               </div>
-					<div class="wrp_code"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
+					<div class="wrp_code candoit"><img class="qrcode lightBorder" src="https://login.weixin.qq.com/qrcode/{{uuid}}?t=webwx" /></div>
 					<div class="info" style="color:#F00">
-                                                <form method="POST">{% csrf_token %}
-						<div class="" id="wx_default_tip">
+						<div class="candoit" id="wx_default_tip">
                                                        <p>本工具可以轻松找出删除自己的好友，还不被他们发现，最终会遗留下一个只有自己的群组，需要手工删一下。</p>
-                                                       <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" />
-                                                       <input type="text" value={{uuid}} name="wx_uuid" id="wx_uuid" style="display:none;" />
 			                        </div>
-                                                <div>{{delyou}}</div>
-                                                </form>
+                                                       <input type="text" value={{uuid}} name="wx_uuid" id="wx_uuid" style="display:none;" />
+                                                <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" onclick="this.disabled=true;setTimeout('icandoit.disabled=false',15000);" />
+                                                <!--input type="button" value=" 失效5秒 " id="me" onclick="this.disabled=true;setTimeout('me.disabled=false',5000);"-->
 			               </div>
 				</div>
 			</div>
@@ -56,8 +51,18 @@ $('body').ready(function waitlogin(){
                        dataType: "json",
                       /* data: {"uuid": _uuid},*/
                        success: function(data){
-                              if(data.return_code=='done')
-                                 {$('#icandoit').show();}
+                              if(data.return_code=='done'){
+                                 $('#icandoit').show();
+                                 $('#icandoit').click(function(){
+                                         $("#wx_default_tip").text("别急别急，约20秒就好了！");
+                                         $.ajax({
+                                             url: "/checkwx/",
+                                             type: "get",
+                                             data: {"uuid": _uuid},
+                                             success: function(data){$('#wx_default_tip').html(data)},
+                                          });
+                                        });
+                                   }
                            },
                       });
               else if(_code=='201'){var _tip='0';waitlogin();}
