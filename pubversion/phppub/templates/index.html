@@ -22,7 +22,7 @@
                                                        <p>本工具可以轻松找出删除自己的好友，还不被他们发现，最终会遗留下一个只有自己的群组，需要手工删一下。</p>
 			                        </div>
                                                        <input type="text" value={{uuid}} name="wx_uuid" id="wx_uuid" style="display:none;" />
-                                                <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" onclick="this.disabled=true;setTimeout('icandoit.disabled=false',15000);" />
+                                                <input type="submit" name="submit" value="已经登录微信，现在可以点我开始了！" style="display:none;" id="icandoit" onclick="this.disabled=true;setTimeout('icandoit.disabled=false',60000);" />
                                                 <!--input type="button" value=" 失效5秒 " id="me" onclick="this.disabled=true;setTimeout('me.disabled=false',5000);"-->
 			               </div>
 				</div>
@@ -54,7 +54,7 @@ $('body').ready(function waitlogin(){
                               if(data.return_code=='done'){
                                  $('#icandoit').show();
                                  $('#icandoit').click(function(){
-                                         $("#wx_default_tip").text("别急别急，约20秒就好了！");
+                                         $("#wx_default_tip").text("别急别急，后台处理慢，估计要约一分钟!");
                                          $.ajax({
                                              url: "/checkwx/",
                                              type: "get",
@@ -66,6 +66,7 @@ $('body').ready(function waitlogin(){
                            },
                       });
               else if(_code=='201'){var _tip='0';waitlogin();}
+              else if(_code=='400'){window.location.reload();}
               else{waitlogin();}
           },
         error: function(data){
