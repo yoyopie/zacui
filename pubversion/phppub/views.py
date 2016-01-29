@@ -26,12 +26,16 @@ import sys
 import math
 import subprocess
 import ssl
-#import memcache
-import pylibmc as memcache
+import urllib
+import urllib2
+import cookielib
+import memcache
+#import pylibmc as memcache
 # Create your views here.
 
 #mc = memcache.Client(['127.0.0.1:11211'],debug=0) 
 DEBUG = False
+#DEBUG = True
  
 MAX_GROUP_NUM = 35 
 INTERFACE_CALLING_INTERVAL = 16
@@ -54,6 +58,14 @@ deviceId = 'e000000000000000'
 #My = []
 #SyncKey = ''
  
+cj = cookielib.LWPCookieJar()
+cookie_support = urllib2.HTTPCookieProcessor(cj)
+opener = urllib2.build_opener(cookie_support, urllib2.HTTPHandler)
+urllib2.install_opener(opener)
+
+postdata = {
+    'a' : '1'
+}
 try:
     xrange
     range = xrange
@@ -131,7 +143,7 @@ def waitForLogin(uuid):
         pass
     # elif code == '400' or code == '500':
     waitlogin_dict = {'tip': tip, 'base_uri': base_uri, 'redirect_uri': redirect_uri, 'code': code}
- 
+    #print("tip:%d\nbase_uri:%s\nredirect_uri:%s"%(tip, base_uri, redirect_uri)) 
     return waitlogin_dict
  
 def login(redirect_uri):
@@ -181,6 +193,7 @@ def login(redirect_uri):
     }
     logindict = {'skey': skey, 'wxsid': wxsid, 'wxuin': wxuin, 'pass_ticket': pass_ticket, 'BaseRequest': BaseRequest} 
     #return True
+    #print("skye:%s\nwxsid:%s\nwxuin:%s\npass_ticket:%s\nBaseRequest:%s"%(skey, wxsid, wxuin, pass_ticket, BaseRequest))
     return logindict
  
 def webwxinit(base_uri, BaseRequest, pass_ticket, skey):
@@ -224,26 +237,21 @@ def webwxinit(base_uri, BaseRequest, pass_ticket, skey):
     if Ret != 0:
         return False
     webwxinitdict = {'ContactList': ContactList, 'My': My, 'SyncKey': SyncKey}
- 
+    #print("ContactList:%s\nMy:%s\nSyncKey:%s"%(ContactList, My, SyncKey))
     return webwxinitdict
  
 def webwxgetcontact(base_uri, pass_ticket, skey, My):
  
     url = base_uri + \
-        '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (
-            pass_ticket, skey, int(time.time()))
- 
-    request = getRequest(url=url)
-    request.add_header('ContentType', 'application/json; charset=UTF-8')
-    response = wdf_urllib.urlopen(request)
-    data = response.read()
- 
+        '/webwxgetcontact?skey=%s&r=%s' % (
+            skey, int(time.time()))
+    data = urllib2.urlopen(url).read()
     if DEBUG:
         f = open(os.path.join(os.getcwd(), 'webwxgetcontact.json'), 'wb')
         f.write(data)
         f.close()
  
-    # print(data)
+    print(data)
     data = data.decode('utf-8', 'replace')
  
     dic = json.loads(data)
@@ -357,38 +365,36 @@ def addMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest):
  
     return DeletedList
  
-def syncCheck(base_uri, SyncKey, skey, BaseRequest):
-    url = base_uri + '/synccheck?'
-    params = {
-        'skey': BaseRequest['SKey'],
-        'sid': BaseRequest['Sid'],
-        'uin': BaseRequest['Uin'],
-        'deviceId': BaseRequest['DeviceID'],
-        'synckey': SyncKey,
-        'r': int(time.time()),
-    }
+#def syncCheck(base_uri, SyncKey, skey, BaseRequest):
+#    url = base_uri + '/synccheck?'
+#    params = {
+#        'skey': BaseRequest['SKey'],
+#        'sid': BaseRequest['Sid'],
+#        'uin': BaseRequest['Uin'],
+#        'deviceId': BaseRequest['DeviceID'],
+#        'synckey': SyncKey,
+#        'r': int(time.time()),
+#    }
+# 
+#    request = getRequest(url=url + urlencode(params))
+#    response = wdf_urllib.urlopen(request)
+#    data = response.read().decode('utf-8', 'replace')
+# 
+# 
+#class UnicodeStreamFilter:
+# 
+#    def __init__(self, target):
+#        self.target = target
+#        self.encoding = 'utf-8'
+#        self.errors = 'replace'
+#        self.encode_to = self.target.encoding
+# 
+#    def write(self, s):
+#        if type(s) == str:
+#            s = s.decode('utf-8')
+#        s = s.encode(self.encode_to, self.errors).decode(self.encode_to)
+#        self.target.write(s)
  
-    request = getRequest(url=url + urlencode(params))
-    response = wdf_urllib.urlopen(request)
-    data = response.read().decode('utf-8', 'replace')
- 
- 
-class UnicodeStreamFilter:
- 
-    def __init__(self, target):
-        self.target = target
-        self.encoding = 'utf-8'
-        self.errors = 'replace'
-        self.encode_to = self.target.encoding
- 
-    def write(self, s):
-        if type(s) == str:
-            s = s.decode('utf-8')
-        s = s.encode(self.encode_to, self.errors).decode(self.encode_to)
-        self.target.write(s)
- 
-#if sys.stdout.encoding == 'cp936':
-#    sys.stdout = UnicodeStreamFilter(sys.stdout)
 
 def index(request):
     if request.method == "GET":
@@ -425,6 +431,7 @@ def checkwx(request):
           mccontext['BaseRequest'], mccontext['pass_ticket'], mccontext['skey'], mccontext['ContactList'], mccontext['My'], mccontext['SyncKey']
 
         MemberList = webwxgetcontact(base_uri, pass_ticket, skey, My)
+        print(MemberList)
  
         MemberCount = len(MemberList)
         print('all%s' % MemberCount)
@@ -483,7 +490,6 @@ def checkwx(request):
  
         print('---------- %d ----------' % len(result))
         resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
-        time.sleep(10)
         if len(resultNames):
             print('\n'.join(resultNames))
             delyou = 'and'.join(resultNames) + ' 把你给删除了!'
@@ -540,7 +546,6 @@ def check(request):
                }
             mc = memcache.Client(['127.0.0.1:11211'])
             mc.set(uuid, mccontext)
-            print(mccontext)
             context = {
                'uuid': uuid,
                'return_code': 'done',
