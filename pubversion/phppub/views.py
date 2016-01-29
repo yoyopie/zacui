@@ -33,30 +33,13 @@ import memcache
 #import pylibmc as memcache
 # Create your views here.
 
-#mc = memcache.Client(['127.0.0.1:11211'],debug=0) 
 DEBUG = False
 #DEBUG = True
  
 MAX_GROUP_NUM = 35 
 INTERFACE_CALLING_INTERVAL = 16
 MAX_PROGRESS_LEN = 50
- 
-#tip = 0
-#uuid = ''
-#base_uri = ''
-#redirect_uri = ''
-# 
-#skey = ''
-#wxsid = ''
-#wxuin = ''
-#pass_ticket = ''
 deviceId = 'e000000000000000'
-# 
-#BaseRequest = {}
-# 
-#ContactList = []
-#My = []
-#SyncKey = ''
  
 cj = cookielib.LWPCookieJar()
 cookie_support = urllib2.HTTPCookieProcessor(cj)
@@ -82,7 +65,6 @@ def getRequest(url, data=None):
         return wdf_urllib.Request(url=url, data=data)
  
 def getUUID():
-    #global uuid
  
     url = 'https://login.weixin.qq.com/jslogin'
     params = {
@@ -98,22 +80,16 @@ def getUUID():
  
     # print(data)
  
-    # window.QRLogin.code = 200; window.QRLogin.uuid = "oZwt_bFfRg==";
     regx = r'window.QRLogin.code = (\d+); window.QRLogin.uuid = "(\S+?)"'
     pm = re.search(regx, data)
  
     code = pm.group(1)
     uuid = pm.group(2)
  
-    #if code == '200':
-    #    return True
- 
-    #return False
     return uuid
  
  
 def waitForLogin(uuid):
-    #global tip, base_uri, redirect_uri
     base_uri = ''
     redirect_uri = ''
     tip = 0 
@@ -136,18 +112,13 @@ def waitForLogin(uuid):
         redirect_uri = pm.group(1) + '&fun=new'
         base_uri = redirect_uri[:redirect_uri.rfind('/')]
  
-        # closeQRImage
-        if sys.platform.find('darwin') >= 0:  # for OSX with Preview
-            os.system("osascript -e 'quit app \"Preview\"'")
     elif code == '408':
         pass
-    # elif code == '400' or code == '500':
     waitlogin_dict = {'tip': tip, 'base_uri': base_uri, 'redirect_uri': redirect_uri, 'code': code}
     #print("tip:%d\nbase_uri:%s\nredirect_uri:%s"%(tip, base_uri, redirect_uri)) 
     return waitlogin_dict
  
 def login(redirect_uri):
-    #global skey, wxsid, wxuin, pass_ticket, BaseRequest
  
     request = getRequest(url=redirect_uri)
     response = wdf_urllib.urlopen(request)
@@ -182,8 +153,6 @@ def login(redirect_uri):
     # print('skey: %s, wxsid: %s, wxuin: %s, pass_ticket: %s' % (skey, wxsid,
     # wxuin, pass_ticket))
  
-    #if not all((skey, wxsid, wxuin, pass_ticket)):
-    #    return False
  
     BaseRequest = {
         'Uin': int(wxuin),
@@ -192,7 +161,6 @@ def login(redirect_uri):
         'DeviceID': deviceId,
     }
     logindict = {'skey': skey, 'wxsid': wxsid, 'wxuin': wxuin, 'pass_ticket': pass_ticket, 'BaseRequest': BaseRequest} 
-    #return True
     #print("skye:%s\nwxsid:%s\nwxuin:%s\npass_ticket:%s\nBaseRequest:%s"%(skey, wxsid, wxuin, pass_ticket, BaseRequest))
     return logindict
  
@@ -219,7 +187,6 @@ def webwxinit(base_uri, BaseRequest, pass_ticket, skey):
  
     # print(data)
  
-    #global ContactList, My, SyncKey
     dic = json.loads(data)
     ContactList = dic['ContactList']
     My = dic['User']
@@ -251,7 +218,7 @@ def webwxgetcontact(base_uri, pass_ticket, skey, My):
         f.write(data)
         f.close()
  
-    print(data)
+    #print(data)
     data = data.decode('utf-8', 'replace')
  
     dic = json.loads(data)
@@ -273,9 +240,6 @@ def webwxgetcontact(base_uri, pass_ticket, skey, My):
     return MemberList
  
 def createChatroom(UserNames, pass_ticket, base_uri, BaseRequest):
-    # MemberList = []
-    # for UserName in UserNames:
-        # MemberList.append({'UserName': UserName})
     MemberList = [{'UserName': UserName} for UserName in UserNames]
  
     url = base_uri + \
@@ -365,36 +329,6 @@ def addMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest):
  
     return DeletedList
  
-#def syncCheck(base_uri, SyncKey, skey, BaseRequest):
-#    url = base_uri + '/synccheck?'
-#    params = {
-#        'skey': BaseRequest['SKey'],
-#        'sid': BaseRequest['Sid'],
-#        'uin': BaseRequest['Uin'],
-#        'deviceId': BaseRequest['DeviceID'],
-#        'synckey': SyncKey,
-#        'r': int(time.time()),
-#    }
-# 
-#    request = getRequest(url=url + urlencode(params))
-#    response = wdf_urllib.urlopen(request)
-#    data = response.read().decode('utf-8', 'replace')
-# 
-# 
-#class UnicodeStreamFilter:
-# 
-#    def __init__(self, target):
-#        self.target = target
-#        self.encoding = 'utf-8'
-#        self.errors = 'replace'
-#        self.encode_to = self.target.encoding
-# 
-#    def write(self, s):
-#        if type(s) == str:
-#            s = s.decode('utf-8')
-#        s = s.encode(self.encode_to, self.errors).decode(self.encode_to)
-#        self.target.write(s)
- 
 
 def index(request):
     if request.method == "GET":
@@ -431,10 +365,10 @@ def checkwx(request):
           mccontext['BaseRequest'], mccontext['pass_ticket'], mccontext['skey'], mccontext['ContactList'], mccontext['My'], mccontext['SyncKey']
 
         MemberList = webwxgetcontact(base_uri, pass_ticket, skey, My)
-        print(MemberList)
+        #print(MemberList)
  
         MemberCount = len(MemberList)
-        print('all%s' % MemberCount)
+        print('通讯录共%s位好友' % MemberCount)
  
         ChatRoomName = ''
         result = []
@@ -442,7 +376,7 @@ def checkwx(request):
         for Member in MemberList:
             d[Member['UserName']] = (Member['NickName'].encode(
                 'utf-8'), Member['RemarkName'].encode('utf-8'))
-        print('finding...')
+        print('开始查找...')
         group_num = int(math.ceil(MemberCount / float(MAX_GROUP_NUM)))
         for i in range(0, group_num):
             UserNames = []
@@ -451,7 +385,8 @@ def checkwx(request):
                     break
                 Member = MemberList[i * MAX_GROUP_NUM + j]
                 UserNames.append(Member['UserName'])
- 
+
+            # 新建群组/添加成员 
             if ChatRoomName == '':
                 (ChatRoomName, DeletedList) = createChatroom(UserNames, pass_ticket, base_uri, BaseRequest)
             else:
@@ -461,15 +396,17 @@ def checkwx(request):
             if DeletedCount > 0:
                 result += DeletedList
  
+            # 删除成员
             deleteMember(ChatRoomName, UserNames, pass_ticket, base_uri, BaseRequest)
  
+            # 进度条
             progress_len = MAX_PROGRESS_LEN
             progress = '-' * progress_len
             progress_str = '%s' % ''.join(
                 map(lambda x: '#', progress[:(progress_len * (i + 1)) / group_num]))
             print(''.join(
                 ['[', progress_str, ''.join('-' * (progress_len - len(progress_str))), ']']))
-            print('ad%d' % DeletedCount)
+            print('新发现你被%d人删除' % DeletedCount)
             for i in range(DeletedCount):
                 if d[DeletedList[i]][1] != '':
                     print(d[DeletedList[i]][0] + '(%s)' % d[DeletedList[i]][1])
@@ -477,10 +414,12 @@ def checkwx(request):
                     print(d[DeletedList[i]][0])
  
             if i != group_num - 1:
-                print('...')
+                print('正在继续查找,请耐心等待......')
+                # 下一次进行接口调用需要等待的时间
                 time.sleep(INTERFACE_CALLING_INTERVAL)
  
-        print('\n,20s...')
+        # todo 删除群组
+        print('\n结果汇总完毕,20s后可重试...')
         resultNames = []
         for r in result:
             if d[r][1] != '':
@@ -488,13 +427,14 @@ def checkwx(request):
             else:
                 resultNames.append(d[r][0])
  
-        print('---------- %d ----------' % len(result))
+        print('---------- 被删除的好友列表(共%d人) ----------' % len(result))
+        # 过滤emoji
         resultNames = map(lambda x: re.sub(r'<span.+/span>', '', x), resultNames)
         if len(resultNames):
             print('\n'.join(resultNames))
             delyou = 'and'.join(resultNames) + ' 把你给删除了!'
         else:
-            print("no")
+            print("无")
             delyou = '你好牛叉啊，没有人敢删你!'
         print('---------------------------------------------')
         context = {
